@@ -1,0 +1,15 @@
+{
+  "name": "smart-waste-management-server",
+  "version": "1.0.0",
+  "description": "Local server simulating Watson IoT platform & Cloudant DB for Smart Waste Management System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.17.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
