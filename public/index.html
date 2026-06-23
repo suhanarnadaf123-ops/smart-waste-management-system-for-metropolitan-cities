@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Waste Management System | Metropolitan Cities</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-icon">
+          <i class="fa-solid fa-dumpster-fire"></i>
+        </div>
+        <div class="brand-text">
+          <h2>MetroWaste</h2>
+          <span>Smart IoT Panel</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <a href="#" class="menu-item active" data-view="dashboard">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Overview Dashboard</span>
+        </a>
+        <a href="#" class="menu-item" data-view="map-tracker">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <span>Live Map Tracker</span>
+        </a>
+        <a href="#" class="menu-item" data-view="route-planner">
+          <i class="fa-solid fa-route"></i>
+          <span>Route Planner</span>
+          <span class="badge badge-route">GO</span>
+        </a>
+        <a href="#" class="menu-item" data-view="maintenance-alerts">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Maintenance Logs</span>
+          <span class="badge badge-alerts" id="alerts-count">0</span>
+        </a>
+        <a href="#" class="menu-item" data-view="analytics">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Data Analytics</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <!-- Theme Switcher -->
+        <div class="theme-switch-container">
+          <span class="theme-switch-label">Interface Mode</span>
+          <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Light/Dark Theme">
+            <i class="fa-solid fa-sun" id="theme-icon"></i>
+          </button>
+        </div>
+        
+        <div class="user-profile">
+          <div class="profile-pic">
+            <i class="fa-solid fa-user-tie"></i>
+          </div>
+          <div class="profile-info">
+            <p class="profile-name">Admin Officer</p>
+            <p class="profile-role">Municipal Corp</p>
+          </div>
+        </div>
+        
+        <div class="status-indicator">
+          <span class="dot-blink" id="connection-status"></span>
+          <span id="connection-text">Sim Offline</span>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Main content area -->
+    <main class="main-content">
+      
+      <!-- Top header bar -->
+      <header class="top-header">
+        <div class="header-title">
+          <h1 id="page-title">Overview Dashboard</h1>
+          <p id="page-subtitle" class="text-muted">Real-time status of waste containers in Metropolitan Mumbai</p>
+        </div>
+        
+        <div class="quick-stats-bar">
+          <div class="quick-stat-item">
+            <span class="stat-label">Average Fill Rate</span>
+            <div class="stat-value-group">
+              <span class="stat-value" id="quick-avg-fill">0%</span>
+              <span class="stat-trend trend-down"><i class="fa-solid fa-arrow-down-long"></i> 2.4%</span>
+            </div>
+          </div>
+          <div class="quick-stat-divider"></div>
+          <div class="quick-stat-item">
+            <span class="stat-label">Monitored Bins</span>
+            <div class="stat-value-group">
+              <span class="stat-value" id="quick-total-bins">9</span>
+              <span class="stat-desc">Bins Active</span>
+            </div>
+          </div>
+          <div class="quick-stat-divider"></div>
+          <div class="quick-stat-item">
+            <span class="stat-label">Urgent Collection</span>
+            <div class="stat-value-group">
+              <span class="stat-value text-red" id="quick-urgent-bins">0</span>
+              <span class="stat-desc">Fill > 80%</span>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Content Views -->
+      <section class="content-wrapper">
+        
+        <!-- VIEW 1: Overview Dashboard -->
+        <div class="view-panel active" id="view-dashboard">
+          <!-- KPI Cards Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-card-header">
+                <h3>Total Stored Weight</h3>
+                <i class="fa-solid fa-weight-hanging icon-teal"></i>
+              </div>
+              <div class="kpi-card-body">
+                <span class="kpi-value" id="kpi-total-weight">0.0 kg</span>
+                <span class="kpi-subtext">Across all metropolitan bins</span>
+              </div>
+            </div>
+            
+            <div class="kpi-card">
+              <div class="kpi-card-header">
+                <h3>Route efficiency</h3>
+                <i class="fa-solid fa-leaf icon-emerald"></i>
+              </div>
+              <div class="kpi-card-body">
+                <span class="kpi-value" id="kpi-route-efficiency">84%</span>
+                <span class="kpi-subtext">CO₂ Emissions Saved Today</span>
+              </div>
+            </div>
+            
+            <div class="kpi-card">
+              <div class="kpi-card-header">
+                <h3>Pending Maintenance Alerts</h3>
+                <i class="fa-solid fa-triangle-exclamation icon-amber"></i>
+              </div>
+              <div class="kpi-card-body">
+                <span class="kpi-value" id="kpi-active-alerts">0</span>
+                <span class="kpi-subtext">Requires immediate deployment</span>
+              </div>
+            </div>
+            
+            <div class="kpi-card">
+              <div class="kpi-card-header">
+                <h3>Sensor Battery Avg</h3>
+                <i class="fa-solid fa-battery-three-quarters icon-blue"></i>
+              </div>
+              <div class="kpi-card-body">
+                <span class="kpi-value" id="kpi-avg-battery">100%</span>
+                <span class="kpi-subtext">All IoT telemetry operational</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Bins Table/Grid & Activity Feed -->
+          <div class="dashboard-grid">
+            <!-- Bins Realtime Status Container -->
+            <div class="bins-directory-container glass-panel">
+              <div class="panel-header">
+                <h2>Real-Time Bins Directory</h2>
+                <div class="panel-actions">
+                  <!-- View Selectors (Table vs Grid) -->
+                  <div class="view-selectors">
+                    <button class="selector-btn active" id="btn-view-table">
+                      <i class="fa-solid fa-list"></i> Table
+                    </button>
+                    <button class="selector-btn" id="btn-view-grid">
+                      <i class="fa-solid fa-grip"></i> Cards
+                    </button>
+                  </div>
+                  <button class="btn btn-secondary btn-sm" id="btn-refresh-dashboard">
+                    <i class="fa-solid fa-rotate"></i>
+                  </button>
+                  <button class="btn btn-primary btn-sm" id="btn-empty-all-dashboard">
+                    <i class="fa-solid fa-truck-ramp-box"></i> Empty All
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Subview A: Table View -->
+              <div class="bins-table-wrapper" id="directory-table-view">
+                <div class="table-wrapper">
+                  <table class="styled-table">
+                    <thead>
+                      <tr>
+                        <th>Bin ID</th>
+                        <th>Location Name</th>
+                        <th>Fill Level (%)</th>
+                        <th>Weight (kg)</th>
+                        <th>Battery</th>
+                        <th>Temp</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="bins-table-body">
+                      <tr>
+                        <td colspan="8" class="text-center">Loading bin directory data...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <!-- Subview B: Grid Cards View -->
+              <div class="bins-grid-wrapper" id="directory-grid-view">
+                <!-- Populated dynamically by app.js -->
+              </div>
+            </div>
+            
+            <!-- Live Activity Log -->
+            <div class="activity-feed-container glass-panel">
+              <div class="panel-header">
+                <h2>System Telemetry Feed</h2>
+                <span class="activity-indicator"></span>
+              </div>
+              <div class="feed-wrapper" id="activity-feed">
+                <div class="feed-empty">Waiting for IoT device packets...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- VIEW 2: Live Map Tracker -->
+        <div class="view-panel" id="view-map-tracker">
+          <div class="map-view-container glass-panel">
+            <div class="map-controls">
+              <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="map-search" placeholder="Search bins by location name...">
+              </div>
+              <div class="legend-panel">
+                <span class="legend-item"><span class="legend-dot status-green"></span> Empty (&lt;50%)</span>
+                <span class="legend-item"><span class="legend-dot status-yellow"></span> Medium (50-80%)</span>
+                <span class="legend-item"><span class="legend-dot status-red"></span> Full (&gt;80%)</span>
+                <span class="legend-item"><span class="legend-dot status-purple"></span> Anomaly</span>
+              </div>
+            </div>
+            <!-- Map Target -->
+            <div id="map"></div>
+          </div>
+        </div>
+        
+        <!-- VIEW 3: Route Planner -->
+        <div class="view-panel" id="view-route-planner">
+          <div class="route-planner-grid">
+            <div class="route-panel-controls glass-panel">
+              <div class="panel-header">
+                <h2>Collection Optimization</h2>
+                <p class="text-muted">Calculates the shortest route for garbage trucks using Nearest Neighbor TSP algorithm, targeting overflow bins.</p>
+              </div>
+              
+              <div class="form-group">
+                <label for="route-threshold">Fill Level Threshold for Collection</label>
+                <div class="range-slider-group">
+                  <input type="range" id="route-threshold" min="50" max="95" value="80" step="5">
+                  <span class="slider-val" id="route-threshold-val">80%</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Starting Depot Location</label>
+                <div class="select-wrapper">
+                  <select id="route-depot">
+                    <option value="depot_central">Municipal HQ Depot (Bandra)</option>
+                    <option value="depot_south">South Ward Yard (Colaba)</option>
+                    <option value="depot_north">North Ward Depot (Andheri)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button class="btn btn-accent btn-block" id="btn-calculate-route">
+                <i class="fa-solid fa-route"></i> Generate Optimized Route
+              </button>
+              
+              <hr class="panel-divider">
+              
+              <div class="route-summary-panel" id="route-summary">
+                <div class="empty-route-msg">No active route. Select parameters and click generate.</div>
+              </div>
+            </div>
+            
+            <div class="route-map-container glass-panel">
+              <div class="panel-header">
+                <h2>Optimized Route Map</h2>
+                <div class="panel-badge-group">
+                  <span class="badge badge-indigo" id="truck-status-badge">Fleet Idle</span>
+                </div>
+              </div>
+              <div id="route-map"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- VIEW 4: Maintenance Logs -->
+        <div class="view-panel" id="view-maintenance-alerts">
+          <div class="alerts-manager-layout">
+            <div class="alerts-sidebar glass-panel">
+              <h2>Alert Summary</h2>
+              <div class="alerts-stats">
+                <div class="alert-stat-card">
+                  <span class="stat-num text-red" id="alert-stat-overflow">0</span>
+                  <span class="stat-name">Overflow Bins</span>
+                </div>
+                <div class="alert-stat-card">
+                  <span class="stat-num text-orange" id="alert-stat-temp">0</span>
+                  <span class="stat-name">Thermal Faults</span>
+                </div>
+                <div class="alert-stat-card">
+                  <span class="stat-num text-blue" id="alert-stat-battery">0</span>
+                  <span class="stat-name">Low Battery Bins</span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-block" id="btn-clear-resolved-alerts">
+                <i class="fa-solid fa-trash-can"></i> Clear All Alerts
+              </button>
+            </div>
+            
+            <div class="alerts-feed-main glass-panel">
+              <div class="panel-header">
+                <h2>Active Incidents & Alerts Log</h2>
+                <p class="text-muted">Proactive maintenance tasks dispatched to metropolitan cleanup crews.</p>
+              </div>
+              <div class="alerts-list-wrapper" id="alerts-list">
+                <div class="alerts-empty">No active alerts. Bins are running in optimal conditions.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- VIEW 5: Data Analytics -->
+        <div class="view-panel" id="view-analytics">
+          <div class="analytics-layout-grid">
+            <div class="chart-card glass-panel chart-span-2">
+              <div class="chart-header">
+                <h2>Waste Levels Comparison</h2>
+                <p class="text-muted">Current capacity percentages compared across all active containers.</p>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-bins-comparison"></canvas>
+              </div>
+            </div>
+            
+            <div class="chart-card glass-panel">
+              <div class="chart-header">
+                <h2>Recycling & Waste Breakdown</h2>
+                <p class="text-muted">Composition of garbage collected based on historical metropolitan trends.</p>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-waste-breakdown"></canvas>
+              </div>
+            </div>
+            
+            <div class="chart-card glass-panel chart-span-3">
+              <div class="chart-header">
+                <h2>Weekly Waste Generation Trend</h2>
+                <p class="text-muted">Aggregated fill load over the past week (simulated data analytics).</p>
+              </div>
+              <div class="chart-container-large">
+                <canvas id="chart-generation-trend"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </section>
+    </main>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- App Custom Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
